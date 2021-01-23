@@ -75,21 +75,28 @@ public class First extends AppCompatActivity {
         leaderBoardArrayList=new ArrayList<>();
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
+        leaderAdapter=new LeaderAdapter(leaderBoardArrayList);
+        recyclerView.setAdapter(leaderAdapter);
 
     }
 
     private void getData() {
-        Query DatabaseQuery =firebaseDatabase.getReference().child("USERS");
+        Query DatabaseQuery =firebaseDatabase.getReference().child("USERS").orderByChild("Time");
         DatabaseQuery.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                leaderBoardArrayList.clear();
                 for(DataSnapshot postsnapshot: snapshot.getChildren()) {
-                    LeaderBoard leaderBoard = postsnapshot.getValue(LeaderBoard.class);
-                    String txt=leaderBoard.getEmail();
-                    Log.d("vipin",txt);
-                    //leaderBoardArrayList.add(;
-                    Toast.makeText(First.this, ""+txt, Toast.LENGTH_SHORT).show();
+                   for(DataSnapshot snap : postsnapshot.getChildren())
+                   {
+                       if(snap.getKey().equals("Email")) {
+                           Log.d("vipin", snap.getValue().toString());
+                           leaderBoardArrayList.add(new LeaderBoard(snap.getValue().toString(),snap.getValue().toString(),snap.getValue().toString()));
+
+                       }
+                   }
                 }
+                leaderAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -100,7 +107,7 @@ public class First extends AppCompatActivity {
 
     }
 
-    private void addToDatabase(String uuid,String steps,String email) {
+    private void addToDatabase(String uuid,String steps,String time) {
         HashMap<String,Object> hashMap=new HashMap<>();
         hashMap.put("Time", ServerValue.TIMESTAMP);
         hashMap.put("Steps",steps);
